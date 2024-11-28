@@ -27,7 +27,7 @@ const productSchema = new Schema<TProduct>(
           'Educational',
           'Technology',
         ],
-        message: '{VALUE} is not a valid blood group',
+        message: '{VALUE} is not a valid category',
       },
     },
     description: {

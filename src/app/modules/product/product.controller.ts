@@ -1,13 +1,18 @@
 import { Request, Response } from 'express';
 import { ProductServices } from './product.service';
+import { ProductValidationSchema } from './product.validation';
 
 // create product controller
 const createProduct = async (req: Request, res: Response) => {
   try {
     const product = req.body.product;
 
+    // zod validation
+
+    const validatedProduct = ProductValidationSchema.parse(product);
+
     // call service function to send this data
-    const result = await ProductServices.storeProductIntoDB(product);
+    const result = await ProductServices.storeProductIntoDB(validatedProduct);
 
     // response
     res.status(200).json({
@@ -15,9 +20,13 @@ const createProduct = async (req: Request, res: Response) => {
       success: true,
       data: result,
     });
-  } catch (error) {
-    //
-    console.log(error);
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.issues[0].message || 'something went wrong',
+      success: false,
+      error: error,
+      stack: error.stack,
+    });
   }
 };
 
@@ -56,7 +65,12 @@ const getSpecificProduct = async (req: Request, res: Response) => {
     });
   } catch (error) {
     //
-    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+      success: false,
+      error: error.name,
+      stack: error.stack,
+    });
   }
 };
 
