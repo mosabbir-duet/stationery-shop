@@ -20,6 +20,7 @@ const getAllProductsFromDB = async (searchTerm?: string) => {
     : {}; // If no searchTerm, return all products
 
   // Fetch and return matching products
+  console.log(query);
   const products = await Product.find(query);
 
   // Check if products are found
@@ -33,7 +34,7 @@ const getAllProductsFromDB = async (searchTerm?: string) => {
 
 // get all products
 
-const geSpecificProductsFromDB = async (productId: string) => {
+const getSpecificProductsFromDB = async (productId: string) => {
   // Fetch and return matching products
   const product = await Product.findOne({ _id: productId });
 
@@ -59,9 +60,23 @@ const updateProductFromDB = async (productId: string, updateData: object) => {
   return result;
 };
 
+// delete product
+const deleteProductFromDB = async (productId: string) => {
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    console.log(product);
+    return product;
+  }
+
+  await product.deleteOne();
+  return product;
+};
+
 export const ProductServices = {
   storeProductIntoDB,
   getAllProductsFromDB,
-  geSpecificProductsFromDB,
+  getSpecificProductsFromDB,
   updateProductFromDB,
+  deleteProductFromDB,
 };

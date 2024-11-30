@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { ProductServices } from './product.service';
 import { ProductValidationSchema } from './product.validation';
@@ -34,7 +35,7 @@ const createProduct = async (req: Request, res: Response) => {
 const getAllProducts = async (req: Request, res: Response) => {
   try {
     const { searchTerm }: { searchTerm?: string } = req.query;
-    console.log(searchTerm);
+    // console.log(searchTerm);
     // call service function to send this data
     const result = await ProductServices.getAllProductsFromDB(searchTerm);
 
@@ -51,11 +52,14 @@ const getAllProducts = async (req: Request, res: Response) => {
 };
 
 // get specific product controller
-const getSpecificProduct = async (req: Request, res: Response) => {
+const getSpecificProduct = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { productId } = req.params;
     // call service function to send this data
-    const result = await ProductServices.geSpecificProductsFromDB(productId);
+    const result = await ProductServices.getSpecificProductsFromDB(productId);
 
     // response
     res.status(200).json({
@@ -63,9 +67,9 @@ const getSpecificProduct = async (req: Request, res: Response) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (error: any) {
     //
-    return res.status(500).json({
+    res.status(500).json({
       message: error.message,
       success: false,
       error: error.name,
@@ -75,18 +79,18 @@ const getSpecificProduct = async (req: Request, res: Response) => {
 };
 
 // get specific product controller
-const upadateProduct = async (req: Request, res: Response) => {
+const updateProduct = async (req: Request, res: Response) => {
   try {
     const { productId } = req.params; // Getting productId from the request parameters
     const updateData = req.body;
-    console.log(updateData);
+    // console.log(updateData);
     const result = await ProductServices.updateProductFromDB(
       productId,
       updateData,
     );
 
     if (!result) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: 'Product not found.',
       });
@@ -98,8 +102,8 @@ const upadateProduct = async (req: Request, res: Response) => {
       success: true,
       data: result,
     });
-  } catch (error) {
-    return res.status(500).json({
+  } catch (error: any) {
+    res.status(500).json({
       message: error.message,
       success: false,
       error: error.name,
@@ -108,9 +112,38 @@ const upadateProduct = async (req: Request, res: Response) => {
   }
 };
 
+// delete product
+
+const deleteProduct = async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+
+    ProductServices.deleteProductFromDB(productId);
+
+    return res.status(200).json({
+      message: 'Product deleted successfully',
+      status: true,
+      data: {},
+    });
+  } catch (error: any) {
+    if (error.message == 'Product not found') {
+      return res.status(404).json({
+        message: 'Product not found',
+        status: false,
+      });
+    }
+
+    res.status(500).json({
+      message: 'An error occurred while deleting the product',
+      status: false,
+    });
+  }
+};
+
 export const ProductController = {
   createProduct,
   getAllProducts,
   getSpecificProduct,
-  upadateProduct,
+  updateProduct,
+  deleteProduct,
 };
