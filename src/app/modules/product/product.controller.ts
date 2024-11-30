@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
+import { z } from 'zod';
+import config from '../../config';
 import { ProductServices } from './product.service';
 import { ProductValidationSchema } from './product.validation';
 
@@ -22,11 +24,20 @@ const createProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    res.status(500).json({
-      message: error.issues[0].message || 'something went wrong',
+    if (error instanceof z.ZodError) {
+      return res.status(403).json({
+        message: 'Validation failed',
+        success: false,
+        error: error.errors, // Detailed validation error messages from Zod
+        stack: error.stack,
+      });
+    }
+
+    // Handle custom errors thrown in the service (e.g., product not found or insufficient stock)
+    return res.status(400).json({
       success: false,
-      error: error,
-      stack: error.stack,
+      message: error.message || 'Something went wrong',
+      stack: config.node_env === 'development' ? error.stack : undefined, // Include stack trace in development
     });
   }
 };

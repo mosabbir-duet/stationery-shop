@@ -20,12 +20,12 @@ const getAllProductsFromDB = async (searchTerm?: string) => {
     : {}; // If no searchTerm, return all products
 
   // Fetch and return matching products
-  console.log(query);
+  // console.log(query);
   const products = await Product.find(query);
 
   // Check if products are found
   if (products.length === 0) {
-    return { message: 'No data found' }; // Return a message if no data is found
+    throw new Error('Product not found'); // Return a message if no data is found
   }
 
   // Return the matching products
@@ -40,7 +40,7 @@ const getSpecificProductsFromDB = async (productId: string) => {
 
   // Check if product are found
   if (!product) {
-    return { message: 'Product not found' };
+    throw new Error('Product not found');
   }
   // Return the product
   return product;
@@ -65,7 +65,6 @@ const deleteProductFromDB = async (productId: string) => {
   const product = await Product.findById(productId);
 
   if (!product) {
-    console.log(product);
     return product;
   }
 
