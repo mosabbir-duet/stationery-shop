@@ -1,3 +1,4 @@
+import { error } from 'console';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import { OrderRoutes } from './app/modules/order/order.route';
@@ -9,13 +10,23 @@ app.use(express.json());
 app.use(cors());
 
 // routes
-app.use('/api/v1', ProductRoutes);
-app.use('/api/v1', OrderRoutes);
+app.use('/api/products', ProductRoutes);
+app.use('/api/orders', OrderRoutes);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send(
-    'Welcome to Stationery Shop! What types of item would you like to buy!!!',
-  );
+  res.send({
+    success: true,
+    message:
+      'Welcome to Stationery Shop! What types of item would you like to buy!!!',
+  });
+});
+
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    message: 'Page not found. The requested route does not exist.',
+    success: false,
+    error: error,
+  });
 });
 
 export default app;

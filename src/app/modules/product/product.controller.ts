@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import config from '../../config';
 import { ProductServices } from './product.service';
 import { ProductValidationSchema } from './product.validation';
 
 // create product controller
-const createProduct = async (req: Request, res: Response) => {
+const createProduct = async (req: Request, res: Response): Promise<any> => {
   try {
     const product = req.body.product;
 
@@ -17,6 +16,12 @@ const createProduct = async (req: Request, res: Response) => {
     // call service function to send this data
     const result = await ProductServices.storeProductIntoDB(validatedProduct);
 
+    if (!result) {
+      return res.status(404).json({
+        message: 'Page not found',
+        success: false,
+      });
+    }
     // response
     res.status(200).json({
       message: 'Product created successfully',
@@ -28,22 +33,23 @@ const createProduct = async (req: Request, res: Response) => {
       return res.status(403).json({
         message: 'Validation failed',
         success: false,
-        error: error.errors, // Detailed validation error messages from Zod
+        error: error, // Detailed validation error messages from Zod
         stack: error.stack,
       });
     }
 
     // Handle custom errors thrown in the service (e.g., product not found or insufficient stock)
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
       message: error.message || 'Something went wrong',
-      stack: config.node_env === 'development' ? error.stack : undefined, // Include stack trace in development
+      error: error,
+      stack: error.stack, // Include stack trace in development
     });
   }
 };
 
 // get all product controller
-const getAllProducts = async (req: Request, res: Response) => {
+const getAllProducts = async (req: Request, res: Response): Promise<any> => {
   try {
     const { searchTerm }: { searchTerm?: string } = req.query;
     // console.log(searchTerm);
@@ -56,9 +62,22 @@ const getAllProducts = async (req: Request, res: Response) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (error: any) {
     //
-    console.log(error);
+    if (error) {
+      return res.status(404).json({
+        message: 'Product not found',
+        success: false,
+        error: error,
+        stack: error.stack,
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Something went wrong',
+      error: error,
+      stack: error.stack, // Include stack trace in development
+    });
   }
 };
 
@@ -66,7 +85,7 @@ const getAllProducts = async (req: Request, res: Response) => {
 const getSpecificProduct = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const { productId } = req.params;
     // call service function to send this data
@@ -81,9 +100,9 @@ const getSpecificProduct = async (
   } catch (error: any) {
     //
     res.status(500).json({
-      message: error.message,
+      message: error.message || 'Something went wrong',
       success: false,
-      error: error.name,
+      error: error,
       stack: error.stack,
     });
   }
@@ -117,7 +136,7 @@ const updateProduct = async (req: Request, res: Response) => {
     res.status(500).json({
       message: error.message,
       success: false,
-      error: error.name,
+      error: error,
       stack: error.stack,
     });
   }
@@ -125,7 +144,7 @@ const updateProduct = async (req: Request, res: Response) => {
 
 // delete product
 
-const deleteProduct = async (req: Request, res: Response) => {
+const deleteProduct = async (req: Request, res: Response): Promise<any> => {
   try {
     const { productId } = req.params;
 
@@ -147,6 +166,8 @@ const deleteProduct = async (req: Request, res: Response) => {
     res.status(500).json({
       message: 'An error occurred while deleting the product',
       status: false,
+      error: error,
+      stack: error.stack,
     });
   }
 };
